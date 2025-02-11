@@ -110,6 +110,25 @@ class BinomialTree:
         option_down = BinomialTree(self.S0 - h, self.K, self.T, self.r, self.sigma, self.n_steps).price_european(option_type)
         return (option_up - option_down) / (2 * h)
 
+    def delta_steps(self, option_type: OptionType) -> float:
+        """
+        Compute Delta dynamically at each node using finite differences.
+        """
+        h = self.S0 * 0.01  # Small perturbation in stock price
+
+        # Compute option price with S0 + h
+        binomial_up = BinomialTree(self.S0 + h, self.K, self.T, self.r, self.sigma, self.n_steps)
+        price_up = binomial_up.price_asian(option_type)  # Compute for Asian options
+
+        # Compute option price with S0 - h
+        binomial_down = BinomialTree(self.S0 - h, self.K, self.T, self.r, self.sigma, self.n_steps)
+        price_down = binomial_down.price_asian(option_type)  # Compute for Asian options
+
+        # Finite difference method to approximate delta
+        delta_value = (price_up - price_down) / (2 * h)
+
+        return delta_value
+
     def vega(self, option_type: OptionType, dv: float = 0.01) -> float:
         """
         Compute Vega using finite difference method.
