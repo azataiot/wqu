@@ -23,16 +23,22 @@ class BinomialTree:
 
         # Store tree structures
         self.stock_tree = np.zeros((n_steps + 1, n_steps + 1))
+        self.avg_stock_tree = np.zeros((n_steps + 1, n_steps + 1))
         self.option_tree = np.zeros((n_steps + 1, n_steps + 1))
         self._build_stock_tree()
 
     def _build_stock_tree(self):
         """
-        Builds the stock price evolution tree.
+        Builds the stock price evolution tree and computes running averages.
         """
         for i in range(self.n_steps + 1):
             for j in range(i + 1):
                 self.stock_tree[j, i] = self.S0 * (self.u ** (i - j)) * (self.d ** j)
+
+        # Compute running average stock prices over time
+        for i in range(self.n_steps + 1):
+            for j in range(i + 1):
+                self.avg_stock_tree[j, i] = np.mean(self.stock_tree[: j + 1, i])
 
     def price_european(self, option_type: OptionType) -> float:
         """
@@ -59,6 +65,39 @@ class BinomialTree:
                 hold_value = np.exp(-self.r * self.dt) * (self.p * self.option_tree[j, i + 1] + (1 - self.p) * self.option_tree[j + 1, i + 1])
                 intrinsic_value = max(0, (self.stock_tree[j, i] - self.K) if option_type == OptionType.CALL else (self.K - self.stock_tree[j, i]))
                 self.option_tree[j, i] = max(hold_value, intrinsic_value)
+
+        return self.option_tree[0, 0]
+
+    def price_asian(self, option_type: OptionType = OptionType.PUT) -> float:
+        """
+        Price an Asian option using a binomial tree.
+
+        Args:
+            option_type: OptionType.CALL or OptionType.PUT
+
+        Returns:
+            Asian option price
+        """
+        # Compute terminal payoffs based on the average stock price at each node
+        for j in range(self.n_steps + 1):
+            avg_price = np.mean(self.stock_tree[j, :])  # Correctly compute path-dependent avg
+            if option_type == OptionType.CALL:
+                self.option_tree[j, self.n_steps] = max(0, avg_price - self.K)
+            else:
+                self.option_tree[j, self.n_steps] = max(0, self.K - avg_price)
+
+        # Backward induction for pricing
+        for i in range(self.n_steps - 1, -1, -1):
+            for j in range(i + 1):
+                # Compute expected discounted value
+                expected_value = np.exp(-self.r * self.dt) * (
+                        self.p * self.option_tree[j, i + 1] + (1 - self.p) * self.option_tree[j + 1, i + 1]
+                )
+                avg_price = np.mean(self.stock_tree[j, : i + 1])  # Average price up to this node
+                intrinsic_value = max(0, self.K - avg_price) if option_type == OptionType.PUT else max(0, avg_price - self.K)
+
+                # Store the max value (since early exercise is not allowed, it's purely expectation-based)
+                self.option_tree[j, i] = expected_value
 
         return self.option_tree[0, 0]
 
