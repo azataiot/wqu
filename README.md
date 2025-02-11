@@ -18,17 +18,22 @@ NOTE: currently package is not stable and interfaces are object to frequent chan
 
 Current available modules:
 
-```
+
 - pricing: A package for pricing options and other financial instruments.
+- volatility: A package for calculating volatility.
+- data: A package for data manipulation and analysis.
+- utils: A package for utility functions.
+- graph: A package for graphing functions.
+- stream: A package for streaming real-time financial data. 
+
+For the pricing:
+```
+pricing
 ├── binomial.py
 ├── greeks.py
 ├── hedging.py
 ├── options.py
 └── trinomial.py
-- data: A package for data manipulation and analysis.
-- utils: A package for utility functions.
-- graph: A package for graphing functions.
-- stream: A package for streaming real-time financial data. 
 ```
 
 ## Contributing
