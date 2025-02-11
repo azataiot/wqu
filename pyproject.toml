@@ -1,17 +1,18 @@
 [project]
 name = "wqu"
-version = "0.1.0"
-description = "Add your description here"
+dynamic = ["version", "description"]
 readme = "README.md"
 authors = [
     { name = "Azat", email = "8280770+azataiot@users.noreply.github.com" }
 ]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "matplotlib>=3.10.0",
+]
 
 [project.scripts]
 wqu = "wqu:main"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
