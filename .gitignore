@@ -7,6 +7,11 @@
 # Author: Azat (@azataiot)
 # ---
 
+# --------------------
+# Project specific
+# --------------------
+tmp/
+example/
 
 # ------
 # Cursor

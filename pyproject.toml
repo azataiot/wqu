@@ -16,3 +16,9 @@ wqu = "wqu:main"
 [build-system]
 requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
+
+[dependency-groups]
+dev = [
+    "jupyterlab>=4.3.5",
+    "ruff>=0.9.6",
+]
