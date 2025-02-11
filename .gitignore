@@ -1,10 +1,96 @@
-# Python-generated files
-__pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
+# ---
+# Global .gitignore configuration.
+# Place this file in the ~/.config/.gitignore, you also need to add it to the .gitconfig file
+# located in ~/.gitconfig as core.excludesfile, check README.md for more details.
+# https://git-scm.com/docs/gitignore
+# https://github.com/djazzcc/.gitignore
+# Author: Azat (@azataiot)
+# ---
 
-# Virtual environments
-.venv
+
+# ------
+# Cursor
+# ------
+
+.cursor/
+.cursorrules
+
+
+# ------
+# Django
+# ------
+db.sqlite3
+
+
+# ---------------------
+# Environment variables
+# ---------------------
+.env
+.**.env
+
+
+# ---------
+# JetBrains
+# ---------
+
+.idea/
+.fleet/
+
+
+# -----
+# macOS
+# -----
+
+.DS_Store
+
+
+# ------
+# Python
+# ------
+
+__pycache__/
+*.egg-info
+**.egg-info/
+*.pot
+*.py[co]
+*.pyd
+dist/
+build/
+MANIFEST
+
+
+# ----
+# Ruff
+# ----
+
+.ruff_cache/
+
+
+# -----
+# Tests
+# -----
+
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+
+
+# --------------------
+# Virtual Environments
+# --------------------
+
+venv/
+.venv/
+
+
+# ------
+# VSCode
+# ------
+
+.vscode/
+.history
