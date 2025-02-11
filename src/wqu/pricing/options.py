@@ -1,6 +1,7 @@
 from enum import Enum, auto
 from dataclasses import dataclass
-from typing import Union, Optional
+from typing import Union, Optional, List
+import numpy as np
 
 class OptionType(Enum):
     CALL = auto()
@@ -42,3 +43,58 @@ class Option:
             return max(0, stock_price - self.K)
         else:
             return max(0, self.K - stock_price)
+            
+    def price(self) -> float:
+        """Calculate option price based on style"""
+        from wqu.pricing.binomial import BinomialTree
+        from wqu.pricing.trinomial import TrinomialTree
+        
+        if self.n_steps is None:
+            self.n_steps = 50  # Default number of steps
+            
+        # Use binomial tree for pricing
+        tree = BinomialTree(
+            S0=self.S0,
+            K=self.K,
+            T=self.T,
+            r=self.r,
+            sigma=self.sigma,
+            n_steps=self.n_steps
+        )
+        
+        if self.option_style == OptionStyle.EUROPEAN:
+            return tree.price_european(self.option_type)
+        elif self.option_style == OptionStyle.AMERICAN:
+            return tree.price_american(self.option_type)
+        else:  # Asian option - simplified implementation
+            return tree.price_european(self.option_type)  # Placeholder for Asian
+            
+    def deltas(self) -> List[float]:
+        """Calculate option deltas at each node"""
+        if self.n_steps is None:
+            self.n_steps = 50
+            
+        dt = self.T / self.n_steps
+        deltas = []
+        
+        for i in range(self.n_steps + 1):
+            t = i * dt
+            remaining_T = self.T - t
+            if remaining_T <= 0:
+                deltas.append(0.0)  # At expiration
+                continue
+                
+            # Calculate delta using finite differences
+            h = self.S0 * 0.01
+            price_up = self.price()
+            
+            # Temporarily modify S0 for down price
+            original_S0 = self.S0
+            self.S0 = self.S0 - h
+            price_down = self.price()
+            self.S0 = original_S0  # Restore original S0
+            
+            delta = (price_up - price_down) / (2 * h)
+            deltas.append(delta)
+            
+        return deltas
