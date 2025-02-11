@@ -1,3 +1,4 @@
+# src/wqu/pricing/trinomial.py
 import numpy as np
 from typing import Tuple
 from wqu.pricing.options import OptionType, OptionStyle

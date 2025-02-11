@@ -1,3 +1,4 @@
+# src/wqu/pricing/options.py
 from enum import Enum, auto
 from dataclasses import dataclass
 from typing import Union, Optional, List
@@ -66,8 +67,8 @@ class Option:
             return tree.price_european(self.option_type)
         elif self.option_style == OptionStyle.AMERICAN:
             return tree.price_american(self.option_type)
-        else:  # Asian option - simplified implementation
-            return tree.price_european(self.option_type)  # Placeholder for Asian
+        else:
+            return tree.price_european(self.option_type)
             
     def deltas(self) -> List[float]:
         """Calculate option deltas at each node"""

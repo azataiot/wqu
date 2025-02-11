@@ -1,3 +1,4 @@
+# src/wqu/pricing/greeks.py
 import numpy as np
 from typing import Tuple, Callable
 
