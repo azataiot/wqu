@@ -1,0 +1,17 @@
+[project]
+name = "wqu"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Azat", email = "8280770+azataiot@users.noreply.github.com" }
+]
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+wqu = "wqu:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
