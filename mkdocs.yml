@@ -3,7 +3,7 @@ site_description: A python package for WQU
 copyright: Copyright &copy; 2024 Azat (@azataiot)
 # Site URL
 # https://www.mkdocs.org/user-guide/configuration/#site_url
-#site_url: ""
+site_url: "https://azgh.cc/wqu/"
 theme:
   name: material
   # Changing the colors
