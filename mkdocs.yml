@@ -4,3 +4,156 @@ copyright: Copyright &copy; 2024 Azat (@azataiot)
 # Site URL
 # https://www.mkdocs.org/user-guide/configuration/#site_url
 #site_url: ""
+theme:
+  name: material
+  # Changing the colors
+  # https://squidfunk.github.io/mkdocs-material/setup/changing-the-colors/#changing-the-colors
+  palette:
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default # light mode (default)
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate # dark mode
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  # Changing the language
+  # https://squidfunk.github.io/mkdocs-material/setup/changing-the-language/#changing-the-language
+  language: en
+  features:
+    #      Navigation
+    - navigation.instant # Instant loading https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#instant-loading
+    - navigation.instant.progress # Progress indicator https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#progress-indicator
+    - navigation.tracking # Anchor tracking https://squidfunk.github.io/mkdocs-material/setup/setting-up-navigation/#anchor-tracking
+    - navigation.tabs # Navigation tabs, top-level sections.
+    #    - navigation.tabs.sticky # Sticky navigation tabs.
+    - navigation.sections # Navigation sections, nested sections.
+    - navigation.prune # Only include the visible navigation items in rendered HTML.
+    - toc.follow # Automatically expand the table of contents to the current page.
+    - navigation.top # Back-to-top button.
+    #      Search
+    - search # Enable search, configure through the plugins section.
+    - search.suggest # Enable search suggestions.
+    - search.highlight
+    - search.share
+    # Tags (enable on plugin section)
+    - content.tabs.link
+    # Header
+    - header.autohide # Auto-hide header.
+    # Footer
+    - navigation.footer # Links to the previous and next page of the current page.
+    - content.code.annotate
+    - content.code.copy
+
+
+  icon:
+    tag:
+      alpinejs: simple/alpinedotjs
+      alpinelinux: simple/alpinelinux
+      book: fontawesome/solid/book
+      html: fontawesome/brands/html5
+      js: fontawesome/brands/js
+      css: fontawesome/brands/css3
+      python: fontawesome/brands/python
+      django: simple/django
+      postgresql: simple/postgresql
+      dotenv: simple/dotenv
+      git: fontawesome/brands/git-alt
+      github: fontawesome/brands/github
+      docker: fontawesome/brands/docker
+      celery: simple/celery
+      htmx: simple/htmx
+      timescale: simple/timescale
+      rabbitmq: simple/rabbitmq
+      redis: simple/redis
+      sentry: simple/sentry
+      ubuntu: simple/ubuntu
+      debian: simple/debian
+      shop: fontawesome/solid/shop
+
+plugins:
+  - search
+  - tags:
+      enabled: true
+      tags_file: tags.md
+
+extra:
+  tags:
+    Alpine.js: alpinejs
+    Alpine Linux: alpinelinux
+    Books: book
+    Celery: celery
+    CSS: css
+    Debian: debian
+    Django: django
+    Docker: docker
+    .ENV: dotenv
+    Git: git
+    GitHub: github
+    HTML5: html
+    HTMX: htmx
+    JavaScript: js
+    PostgreSQL: postgresql
+    Postgres: postgresql
+    Python: python
+    RabbitMQ: rabbitmq
+    Redis: redis
+    Sentry: sentry
+    Shop: shop
+    Timescale: timescale
+    Ubuntu: ubuntu
+
+  generator: false # hides 'Made with Material for MkDocs notice'
+
+extra_javascript:
+  - static/js/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+markdown_extensions:
+  # https://github.com/mkdocs/mkdocs/issues/545#issuecomment-522196661
+  - mdx_truly_sane_lists
+  # Python Markdown https://squidfunk.github.io/mkdocs-material/setup/extensions/python-markdown/
+  - abbr # Abbreviations https://squidfunk.github.io/mkdocs-material/reference/tooltips/#adding-abbreviations
+  - admonition # Admonitions https://squidfunk.github.io/mkdocs-material/reference/admonitions/#usage
+  - attr_list
+  - def_list
+  - footnotes
+  - toc:
+      permalink: true
+  - tables
+  # Python Markdown Extensions https://squidfunk.github.io/mkdocs-material/setup/extensions/python-markdown-extensions/
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem
+  - pymdownx.snippets
+  - pymdownx.caret
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.highlight:
+      pygments_lang_class: true
+      anchor_linenums: true
+      auto_title: true
+      linenums_style: pymdownx-inline
+      line_spans: __span
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+  - pymdownx.tasklist
