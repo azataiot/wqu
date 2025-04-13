@@ -25,4 +25,5 @@ jobs:
           restore-keys: |
             mkdocs-material-
       - run: pip install mkdocs-material
+      - run: pip install mdx-truly-sane-lists
       - run: mkdocs gh-deploy --force
