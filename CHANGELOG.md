@@ -12,3 +12,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed     
 - Updated the package structure based on the course code from the WQU. The 'pricing' module is now a called as 'dp' indicating its direct connection with the Derivative Pricing module.
+- Update GitHub Actions workflow to trigger on changes in docs and mkdocs.yml
