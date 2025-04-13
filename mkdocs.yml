@@ -17,12 +17,14 @@ theme:
     # Palette toggle for light mode
     - media: "(prefers-color-scheme: light)"
       scheme: default # light mode (default)
+      primary: deep purple
       toggle:
         icon: material/weather-night
         name: Switch to dark mode
     # Palette toggle for dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate # dark mode
+      primary: deep purple
       toggle:
         icon: material/weather-sunny
         name: Switch to light mode
@@ -54,8 +56,8 @@ theme:
     - content.code.annotate
     - content.code.copy
 
-
   icon:
+    logo: fontawesome/solid/coins
     tag:
       alpinejs: simple/alpinedotjs
       alpinelinux: simple/alpinelinux
