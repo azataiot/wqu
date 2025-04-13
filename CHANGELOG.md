@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed 
+### Added       
+- Add repository URL to pyproject.toml
 
+### Changed     
 - Updated the package structure based on the course code from the WQU. The 'pricing' module is now a called as 'dp' indicating its direct connection with the Derivative Pricing module.

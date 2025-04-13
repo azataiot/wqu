@@ -15,6 +15,9 @@ dependencies = [
 [project.scripts]
 wqu = "wqu:main"
 
+[project.urls]
+repository = "https://github.com/azataiot/wqu"
+
 [build-system]
 requires = ["flit_core >=3.2,<4"]
 build-backend = "flit_core.buildapi"
