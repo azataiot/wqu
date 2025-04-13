@@ -1,17 +1,26 @@
-# Welcome to MkDocs
+# Welcome to wqu
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+wqu is an open-source, community-driven project dedicated to fostering collaboration, sharing, and learning.
 
-## Commands
+---
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+## Documentation
 
-## Project layout
+Full docs are available at [wqu Documentation](https://azgh.cc/wqu).
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+---
+
+## Contributing
+
+We welcome all kinds of contributions—whether it’s code, documentation, or examples. To get started, please make sure you have a solid background in one or more of the following areas:
+
+- **Python & Scientific Libraries**  
+  NumPy, pandas, matplotlib, SciPy, scikit‑learn, PyTorch  
+- **Documentation Tools**  
+  Markdown, LaTeX  
+
+Ready to contribute?  
+- Join the conversation on our [GitHub Discussions](https://github.com/azataiot/wqu/discussions).  
+- Found a bug or have a feature request? Let us know via our [Issue Tracker](https://github.com/azataiot/wqu/issues).
+
+Thank you for helping make wqu better!
