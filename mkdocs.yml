@@ -86,7 +86,6 @@ plugins:
   - search
   - tags:
       enabled: true
-      tags_file: tags.md
 
 extra:
   tags:
@@ -117,9 +116,8 @@ extra:
   generator: false # hides 'Made with Material for MkDocs notice'
 
 extra_javascript:
-  - static/js/mathjax.js
-  - https://polyfill.io/v3/polyfill.min.js?features=es6
-  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+  - scripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
 
 markdown_extensions:
   # https://github.com/mkdocs/mkdocs/issues/545#issuecomment-522196661
