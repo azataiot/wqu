@@ -49,3 +49,41 @@ def binomial_call(S0, K, T, r, u, d, N):
     # Return the option price, option value tree, and stock price tree
     return C[0, 0], C, S
 
+
+# A function to calculate the price of a European put option using the put-call parity
+def binomial_put(S0, K, T, r, u, d, N):
+    """
+    Computes the price of a European put option using the binomial tree model.
+
+    Args:
+        S0 (float): Initial stock price.
+        K (float): Strike price of the option.
+        T (float): Time to maturity (in years).
+        r (float): Risk-free interest rate (annualized).
+        u (float): Upward movement factor for the stock price.
+        d (float): Downward movement factor for the stock price.
+        N (int): Number of time steps in the binomial tree.
+
+    Returns:
+        float: The price of the European put option.
+    """
+    call_price, _, _ = binomial_call(S0, K, T, r, u, d, N)
+    return call_price - S0 * np.exp(-r * T) + K * np.exp(-r * T)
+
+
+# A function to calculate the price of a European put option using the put-call parity given the call price
+def binomial_put_from_call(S0, K, T, r, call_price):
+    """
+    Computes the price of a European put option using the put-call parity.
+
+    Args:
+        S0 (float): Initial stock price.
+        K (float): Strike price of the option.
+        T (float): Time to maturity (in years).
+        r (float): Risk-free interest rate (annualized).
+        call_price (float): Price of the European call option.
+
+    Returns:
+        float: The price of the European put option.
+    """
+    return call_price - S0 * np.exp(-r * T) + K * np.exp(-r * T)
