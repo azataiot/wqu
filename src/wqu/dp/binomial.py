@@ -8,23 +8,44 @@ This module implements the binomial tree for the options pricing model.
 """
 import numpy as np
 
-def binomial_tree(S0: float, T: float, u: float, d: float, N: int) -> np.ndarray:
+def binomial_call(S0, K, T, r, u, d, N):
     """
-    Constructs a binomial tree of stock prices.
+    Computes the price of a European call option using the binomial tree model.
 
-    :param S0: Initial stock price
-    :param T: Time to maturity (not used in this basic tree, included for completeness)
-    :param u: Up factor per step
-    :param d: Down factor per step
-    :param N: Number of steps
-    :return: 2D array of stock prices [time_step][up_moves]
+    Args:
+        S0 (float): Initial stock price.
+        K (float): Strike price of the option.
+        T (float): Time to maturity (in years).
+        r (float): Risk-free interest rate (annualized).
+        u (float): Upward movement factor for the stock price.
+        d (float): Downward movement factor for the stock price.
+        N (int): Number of time steps in the binomial tree.
+
+    Returns:
+        float: The price of the European call option.
+        np.ndarray: The option value tree.
+        np.ndarray: The stock price tree.
     """
-    S = np.zeros((N + 1, N + 1))
+    dt = T / N  # Time step size
+    disc = np.exp(-r * dt)  # Discount factor for one time step
+    q = (np.exp(r * dt) - d) / (u - d)  # Risk-neutral probability
 
-    for j in range(N + 1):      # time step j
-        for i in range(j + 1):  # number of up moves i
-            S[j, i] = S0 * (u ** i) * (d ** (j - i))
+    # Initialize trees for stock prices and option values
+    S = np.zeros((N + 1, N + 1))  # Stock price tree
+    C = np.zeros((N + 1, N + 1))  # Option value tree
 
-    return S
+    # Compute terminal stock prices and option payoffs
+    for i in range(N + 1):
+        S[N, i] = S0 * (u ** i) * (d ** (N - i))  # Stock price at maturity
+        C[N, i] = max(S[N, i] - K, 0)  # Payoff for a call option at maturity
 
+    # Perform backward induction to calculate option values at earlier nodes
+    for j in range(N - 1, -1, -1):  # Iterate over time steps in reverse
+        for i in range(j + 1):  # Iterate over nodes at each time step
+            S[j, i] = S0 * (u ** i) * (d ** (j - i))  # Stock price at node
+            # Option value is the discounted expected value of future payoffs
+            C[j, i] = disc * (q * C[j + 1, i + 1] + (1 - q) * C[j + 1, i])
+
+    # Return the option price, option value tree, and stock price tree
+    return C[0, 0], C, S
 
