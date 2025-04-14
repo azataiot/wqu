@@ -2,7 +2,7 @@
 
 ## TL;DR
 
-Derivative pricing refers to the process of determining the fair value of a derivative financial instrument, such as an option, future, or swap. It involves using mathematical models and market data to calculate the theoritical price of the derivative based on factors like the underlying asset’s price, volatility, time to expiration, and interest rates. 
+Derivative pricing refers to the process of determining the fair value of a derivative financial instrument, such as an option, future, or swap. It involves using mathematical models and market data to calculate the theoritical price of the derivative based on factors like the underlying asset's price, volatility, time to expiration, and interest rates. 
 
 ## Participants 
 
@@ -34,7 +34,7 @@ Put Option: $(K-S_t)^+ = max(K-S_t;0)$
 
 ## Price Process
 
-The essential characteristics of a derivative is that it’s payoff depends on the evolution of an underlying asset (e.g., a stock for equity options)
+The essential characteristics of a derivative is that it's payoff depends on the evolution of an underlying asset (e.g., a stock for equity options)
 
 > Thus a key aspect for pricing (and our first step) is to model the future evolution of the underlying asset.
 
@@ -53,14 +53,17 @@ The risk-neutral probability is derived as:
 $$
 p = \frac{e^{rT}-d}{u-d}
 $$
+
 Where:
 - $r$: the risk free interest rate 
 - $u,d$: up and down factors 
 - $T$: Time to maturity 
 
-Then the price of a European call option becomes : 	
+Then the price of a European call option becomes :
+
 $$
 C_0 = e^{-rT}[pc_u + (1-p)c_d]
 $$
+
 where $c_u,c_d$ are the call payoffs in up and down states. 
 
