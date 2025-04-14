@@ -134,5 +134,24 @@ C_0 + Ke^{-rT} = S_0 + P_0
 $$
 
 
+To get the Put option price we can either use one of the following:
+
+```python
+from wqu.dp.binomial import binomial_put
+
+# binomial_put(S0, K, T, r, u, d, N)
+p0 = binomial_put(100, 90, 10, 0, 1.2, 0.8, 10)
+```
+
+or 
+
+```python
+from wqu.dp import put_from_call
+# binomial_put_from_call(S0, K, T, r, call_price)
+p0 = put_from_call(100,90,10,0,29.38454450999999)
+```
+
+
+
 
 

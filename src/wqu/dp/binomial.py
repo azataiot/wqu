@@ -23,8 +23,6 @@ def binomial_call(S0, K, T, r, u, d, N):
 
     Returns:
         float: The price of the European call option.
-        np.ndarray: The option value tree.
-        np.ndarray: The stock price tree.
     """
     dt = T / N  # Time step size
     disc = np.exp(-r * dt)  # Discount factor for one time step
@@ -46,8 +44,8 @@ def binomial_call(S0, K, T, r, u, d, N):
             # Option value is the discounted expected value of future payoffs
             C[j, i] = disc * (q * C[j + 1, i + 1] + (1 - q) * C[j + 1, i])
 
-    # Return the option price, option value tree, and stock price tree
-    return C[0, 0], C, S
+    # Return the call option price
+    return C[0, 0]
 
 
 # A function to calculate the price of a European put option using the put-call parity
