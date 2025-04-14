@@ -60,6 +60,7 @@ def binomial_tree(S0: float, T: float, u: float, d: float, N: int) -> np.ndarray
 ```
 
 And:	
+
 $$
 S[j, i] = S₀ × u^i × d^{(j−i)}
 $$

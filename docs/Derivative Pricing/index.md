@@ -48,17 +48,17 @@ Techniques for modeling underlying stock price evolution:
 
 Prices are computed under a risk-neutral measure, where expected returns are discounted at the risk-free rate rather than the actual expected return. 
 
-The risk-neutral probability is derived as: 	
+The risk-neutral probability is derived as:
+
 $$
-p = \frac{e^rT -d}{u -d }
+p = \frac{e^{rT}-d}{u-d}
 $$
 Where:
-
 - $r$: the risk free interest rate 
 - $u,d$: up and down factors 
-- $T$: Time to maturrity 
+- $T$: Time to maturity 
 
-Then the price of a Europian call option becomes : 	
+Then the price of a European call option becomes : 	
 $$
 C_0 = e^{-rT}[pc_u + (1-p)c_d]
 $$
