@@ -8,155 +8,12 @@ This module implements the binomial tree for the options pricing model.
 """
 import numpy as np
 
-def binomial_call(S0, K, T, r, u, d, N):
-    """
-    Computes the price of a European call option using the binomial tree model.
-
-    Args:
-        S0 (float): Initial stock price.
-        K (float): Strike price of the option.
-        T (float): Time to maturity (in years).
-        r (float): Risk-free interest rate (annualized).
-        u (float): Upward movement factor for the stock price.
-        d (float): Downward movement factor for the stock price.
-        N (int): Number of time steps in the binomial tree.
-
-    Returns:
-        float: The price of the European call option.
-    """
-    dt = T / N  # Time step size
-    disc = np.exp(-r * dt)  # Discount factor for one time step
-    q = (np.exp(r * dt) - d) / (u - d)  # Risk-neutral probability
-
-    # Initialize trees for stock prices and option values
-    S = np.zeros((N + 1, N + 1))  # Stock price tree
-    C = np.zeros((N + 1, N + 1))  # Option value tree
-
-    # Compute terminal stock prices and option payoffs
-    for i in range(N + 1):
-        S[N, i] = S0 * (u ** i) * (d ** (N - i))  # Stock price at maturity
-        C[N, i] = max(S[N, i] - K, 0)  # Payoff for a call option at maturity
-
-    # Perform backward induction to calculate option values at earlier nodes
-    for j in range(N - 1, -1, -1):  # Iterate over time steps in reverse
-        for i in range(j + 1):  # Iterate over nodes at each time step
-            S[j, i] = S0 * (u ** i) * (d ** (j - i))  # Stock price at node
-            # Option value is the discounted expected value of future payoffs
-            C[j, i] = disc * (q * C[j + 1, i + 1] + (1 - q) * C[j + 1, i])
-
-    # Return the call option price
-    return C[0, 0]
-
-
-# A function to calculate the price of a European put option using the put-call parity
-def binomial_put(S0, K, T, r, u, d, N):
-    """
-    Computes the price of a European put option using the binomial tree model.
-
-    Args:
-        S0 (float): Initial stock price.
-        K (float): Strike price of the option.
-        T (float): Time to maturity (in years).
-        r (float): Risk-free interest rate (annualized).
-        u (float): Upward movement factor for the stock price.
-        d (float): Downward movement factor for the stock price.
-        N (int): Number of time steps in the binomial tree.
-
-    Returns:
-        float: The price of the European put option.
-    """
-    call_price, _, _ = binomial_call(S0, K, T, r, u, d, N)
-    return call_price - S0 * np.exp(-r * T) + K * np.exp(-r * T)
-
-
-# A function to calculate the price of a European put option using the put-call parity given the call price
-def binomial_put_from_call(S0, K, T, r, call_price):
-    """
-    Computes the price of a European put option using the put-call parity.
-
-    Args:
-        S0 (float): Initial stock price.
-        K (float): Strike price of the option.
-        T (float): Time to maturity (in years).
-        r (float): Risk-free interest rate (annualized).
-        call_price (float): Price of the European call option.
-
-    Returns:
-        float: The price of the European put option.
-    """
-    return call_price - S0 * np.exp(-r * T) + K * np.exp(-r * T)
-
-
-# A function to calculate the Delta of a European call option using the binomial tree model
-
-def calculate_delta(S0, K, u, d, option_type='call'):
-    """
-    Calculates the Delta of a one-step binomial option.
-
-    Parameters:
-    - S0 : float : Initial stock price
-    - K  : float : Strike price of the option
-    - u  : float : Up factor (e.g., 1.2 means 20% increase)
-    - d  : float : Down factor (e.g., 0.8 means 20% decrease)
-    - option_type : str : 'call' or 'put'
-
-    Returns:
-    - delta : float : The delta of the option
-    """
-    # Calculate stock prices at next step
-    Su = S0 * u
-    Sd = S0 * d
-
-    # Calculate option payoffs
-    if option_type == 'call':
-        Cu = max(Su - K, 0)
-        Cd = max(Sd - K, 0)
-    elif option_type == 'put':
-        Cu = max(K - Su, 0)
-        Cd = max(K - Sd, 0)
-    else:
-        raise ValueError("option_type must be either 'call' or 'put'")
-
-    # Compute delta
-    delta = (Cu - Cd) / (Su - Sd)
-    return delta
-
-
-
-# A function to build the binomial tree for the option prices
-def build_stock_tree(S0, u, d, N):
-    """
-    Builds a binomial tree for stock prices.
-    Goal: Build a binomial tree of stock prices over N time steps, where each price at a node depends on how many
-    up moves (u) and down moves (d) have occurred.
-
-    Args:
-        S0 (float): Initial stock price.
-        u (float): Upward movement factor for the stock price.
-        d (float): Downward movement factor for the stock price.
-        N (int): Number of time steps in the binomial tree.
-
-    Returns:
-        np.ndarray: A 2D array representing the stock price tree.
-        S[t][i] = S0 * (u ** i) * (d ** (t - i)), where t is the time step (from 0 to N)
-        and i is the number of up moves at that step. Each cell contains the stock price at that node.
-    """
-    # Initialize the stock price tree
-    S = np.zeros((N + 1, N + 1))
-
-    # Fill in the stock prices at each node
-    for t in range(N + 1):
-        for i in range(t + 1):
-            S[t, i] = S0 * (u ** i) * (d ** (t - i))
-
-    return S
-
-
 
 # A Class represents the binomial tree
 # ------------------------------------------
 # Binomial Tree for Options Pricing
 # Main class: BinomialTree
+# Note: 'asian' style treated as European-style Asian option (exercise at maturity only)
 # ------------------------------------------
 
 class BinomialTree:
@@ -169,7 +26,7 @@ class BinomialTree:
                     d: float,
                     N: int,
                     option_type: str = 'call',
-                    option_style: str = 'european' # 'american' or 'european'
+                    option_style: str = 'european', # 'american' or 'european' or 'asian'
                  ):
         self.S0 = S0
         self.K = K
@@ -197,7 +54,42 @@ class BinomialTree:
         self.stock_tree = S
         return S
 
+    def _build_asian_option_tree(self):
+        from collections import defaultdict
+
+        values = defaultdict(list)  # key: (t, i), value: list of (sum, prob)
+        values[(0, 0)].append((self.S0, 1))
+
+        for t in range(1, self.N + 1):
+            for i in range(t + 1):
+                if i < t:
+                    for sum_s, prob in values[(t - 1, i)]:
+                        S = self.S0 * (self.u ** i) * (self.d ** (t - 1 - i))
+                        new_sum = sum_s + S * self.d
+                        values[(t, i)].append((new_sum, prob * (1 - self.p)))
+                if i > 0:
+                    for sum_s, prob in values[(t - 1, i - 1)]:
+                        S = self.S0 * (self.u ** (i - 1)) * (self.d ** (t - i))
+                        new_sum = sum_s + S * self.u
+                        values[(t, i)].append((new_sum, prob * self.p))
+
+        payoff = 0
+        for i in range(self.N + 1):
+            for sum_s, prob in values[(self.N, i)]:
+                avg = sum_s / (self.N + 1)
+                if self.option_type == 'call':
+                    payoff += prob * max(avg - self.K, 0)
+                else:
+                    payoff += prob * max(self.K - avg, 0)
+
+        self.option_tree = np.zeros_like(self.build_stock_tree())
+        self.option_tree[0, 0] = payoff * np.exp(-self.r * self.T)
+        return self.option_tree
+
     def build_option_tree(self):
+        if self.option_style == 'asian':
+            return self._build_asian_option_tree()
+
         if self.stock_tree is None:
             self.build_stock_tree()
 
@@ -340,6 +232,7 @@ class BinomialTree:
         return self.option_tree[0, 0]
 
     def summary(self):
+        print(f"Option Style: {self.option_style.capitalize()}")
         print(f"Option Type: {self.option_type.capitalize()}")
         print(f"Price at t=0: {self.price():.4f}")
         print(f"Risk-neutral p: {self.p:.4f}")
