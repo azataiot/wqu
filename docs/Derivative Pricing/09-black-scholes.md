@@ -147,3 +147,31 @@ bs.plot_greeks(S_range=(80, 120))
 ```
 
 ![img](./assets/C2893455-0816-433F-9C41-1CAB54E1C1AD.png)
+
+With simulation:
+
+```python
+# With MonteCarlo 
+# bs_call_mc(100, 95, 0.06, 0.3, 1, 0, 100000)) 
+
+from wqu.dp.montecarlo import MonteCarlo
+
+mc = MonteCarlo(
+    S0=100, K=95, T=1, r=0.06, sigma=0.3,
+    N=1, M=100000,  # N=1 since it's a single-step terminal price
+    option_type='call',
+    option_style='european',
+    method='continuous'
+)
+
+print("Monte Carlo Price:", mc.price())
+```
+
+```python
+from wqu.dp.black_scholes import BlackScholes
+
+# bs_call_price(100, 0.06, 0.3, 0, 1, 95))
+bs = BlackScholes(S0=100, K=95, T=1, r=0.06, sigma=0.3, option_type="call")
+print("BS Analytical Price:", bs.price())
+```
+

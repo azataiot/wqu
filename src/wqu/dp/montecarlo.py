@@ -33,6 +33,13 @@ class MonteCarlo:
         self.option_style = option_style.lower()
         self.method = method.lower()
 
+        if self.option_type not in ["call", "put"]:
+            raise ValueError("option_type must be 'call' or 'put'")
+        if self.option_style not in ["european", "asian"]:
+            raise ValueError("option_style must be 'european' or 'asian'")
+        if self.method not in ["continuous", "binomial"]:
+            raise ValueError("method must be 'continuous' or 'binomial'")
+
     def price(self):
         if self.option_style == 'european':
             return self._price_european()
@@ -127,3 +134,11 @@ class MonteCarlo:
         plt.ylabel('Estimated Option Price')
         plt.grid(True)
         plt.show()
+
+    def to_dict(self):
+        return {
+            "option_type": self.option_type,
+            "option_style": self.option_style,
+            "method": self.method,
+            "price": self.price()
+        }
