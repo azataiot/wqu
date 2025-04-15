@@ -1,6 +1,6 @@
 # src/wqu/pricing/hedging.py
 import numpy as np
-from typing import Tuple, List, Dict
+from typing import List
 from dataclasses import dataclass
 
 @dataclass

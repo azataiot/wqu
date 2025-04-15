@@ -2,7 +2,6 @@
 
 import numpy as np
 from scipy.stats import norm
-import matplotlib.pyplot as plt
 
 def black_scholes_call(S, K, T, r, sigma):
     """

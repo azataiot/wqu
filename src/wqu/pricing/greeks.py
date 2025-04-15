@@ -1,6 +1,5 @@
 # src/wqu/pricing/greeks.py
-import numpy as np
-from typing import Tuple, Callable
+from typing import Callable
 
 def compute_vega(pricing_func: Callable, sigma: float, 
                 delta_vol: float = 0.05, **kwargs) -> float:

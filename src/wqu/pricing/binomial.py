@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import Tuple
-from wqu.pricing.options import OptionType, OptionStyle
+from wqu.pricing.options import OptionType
 
 class BinomialTree:
     def __init__(self, S0: float, K: float, T: float, r: float, sigma: float, n_steps: int):
@@ -94,7 +94,7 @@ class BinomialTree:
                         self.p * self.option_tree[j, i + 1] + (1 - self.p) * self.option_tree[j + 1, i + 1]
                 )
                 avg_price = np.mean(self.stock_tree[j, : i + 1])  # Average price up to this node
-                intrinsic_value = max(0, self.K - avg_price) if option_type == OptionType.PUT else max(0, avg_price - self.K)
+                intrinsic_value = max(0, self.K - avg_price) if option_type == OptionType.PUT else max(0, avg_price - self.K) #noqa
 
                 # Store the max value (since early exercise is not allowed, it's purely expectation-based)
                 self.option_tree[j, i] = expected_value
