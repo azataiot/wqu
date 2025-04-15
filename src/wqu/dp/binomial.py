@@ -17,6 +17,19 @@ import numpy as np
 # ------------------------------------------
 
 class BinomialTree:
+    """
+    A class representing a binomial tree for option pricing.
+    Attributes:
+    - S0 : float : Initial stock price
+    - K  : float : Strike price
+    - T  : float : Time to maturity (in years)
+    - r  : float : Risk-free interest rate (annualized)
+    - u  : float : Up factor (stock price increase)
+    - d  : float : Down factor (stock price decrease)
+    - N  : int   : Number of time steps
+    - option_type : str : 'call' or 'put'
+    - option_style : str : 'european', 'american', or 'asian'
+    """
     def __init__(self,
                     S0: float,
                     K: float,
