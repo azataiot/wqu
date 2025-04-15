@@ -17,6 +17,7 @@ wqu = "wqu:main"
 
 [project.urls]
 repository = "https://github.com/azataiot/wqu"
+documentation = "https://azgh.cc/wqu/"
 
 [build-system]
 requires = ["flit_core >=3.2,<4"]

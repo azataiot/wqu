@@ -154,6 +154,11 @@ def build_stock_tree(S0, u, d, N):
 
 
 # A Class represents the binomial tree
+# ------------------------------------------
+# Binomial Tree for Options Pricing
+# Main class: BinomialTree
+# ------------------------------------------
+
 class BinomialTree:
     def __init__(self,
                     S0: float,
@@ -243,6 +248,91 @@ class BinomialTree:
                delta[t, i] = (Cu - Cd) / (Su - Sd)
         self.delta_tree = delta
         return delta
+
+    def simulate_delta_hedge(self, path: str, verbose: bool = True):
+        """
+        Simulates a delta hedge over a single path (e.g., 'udu').
+
+        Parameters:
+        - path : str : Sequence of 'u' and 'd' (e.g., 'udu' means up → down → up)
+        - verbose : bool : If True, prints detailed step-by-step hedge info
+
+        Returns:
+        - final_hedge_value : float : Portfolio value at maturity
+        - option_payoff     : float : Actual payoff of the option
+        - hedge_error       : float : Difference between hedge and actual payoff
+        """
+
+        if self.delta_tree is None:
+            self.build_delta_tree()
+
+        if self.stock_tree is None:
+            self.build_stock_tree()
+
+        if self.option_tree is None:
+            self.build_option_tree()
+
+        shares_held = 0
+        cash = 0
+        t, i = 0, 0  # start at root
+        # initial hedge
+        stock_now = self.stock_tree[t, i]
+        delta_now = self.delta_tree[t, i]
+        shares_held = delta_now
+        cash = -delta_now * stock_now  # borrow/lend to initiate hedge
+
+        if verbose:
+            total_value = shares_held * stock_now + cash
+            print("Initial Hedge:")
+            print(f"Stock: {stock_now:.2f}, Delta: {delta_now:.2f}, Shares: {shares_held:.2f}, Cash: {cash:.2f}, Total: {total_value:.2f}")
+            print("\nStep | Stock  | Delta  | Shares Δ | Stock Value | Cash | Total")
+
+        for move in path:
+            delta_now = self.delta_tree[t, i]
+            stock_now = self.stock_tree[t, i]
+
+            # Determine next step
+            if move == 'u':
+                i += 1
+            elif move == 'd':
+                i += 0
+            else:
+                raise ValueError("Path must be a sequence of 'u' and 'd' only.")
+
+            t += 1
+
+            # Next stock price
+            stock_next = self.stock_tree[t, i]
+            delta_next = self.delta_tree[t, i] if t < self.N else 0  # No hedge at final step
+
+            # Hedge adjustment
+            delta_change = delta_next - delta_now
+            cash -= delta_change * stock_now
+            shares_held = delta_next
+
+            if verbose:
+                total_value = shares_held * stock_next + cash
+                print(f" {t:<4} | {stock_next:<7.2f} | {delta_next:<6.2f} | {delta_change:<8.2f} | {shares_held * stock_next:<11.2f} | {cash:<6.2f} | {total_value:.2f}")
+
+        # Final portfolio value
+        stock_final = self.stock_tree[t, i]
+        hedge_value = shares_held * stock_final + cash
+
+        # Option payoff
+        if self.option_type == 'call':
+            option_payoff = max(0, stock_final - self.K)
+        else:
+            option_payoff = max(0, self.K - stock_final)
+
+        hedge_error = hedge_value - option_payoff
+
+        if verbose:
+            print("\nFinal Results:")
+            print(f"  Hedged Portfolio Value : {hedge_value:.4f}")
+            print(f"  Option Payoff          : {option_payoff:.4f}")
+            print(f"  Hedging Error          : {hedge_error:.4f}")
+
+        return hedge_value, option_payoff, hedge_error
 
     def price(self):
         if self.option_tree is None:
