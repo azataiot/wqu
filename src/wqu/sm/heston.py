@@ -3,6 +3,7 @@
 import numpy as np
 from scipy.integrate import quad
 from scipy.optimize import brute, fmin
+from scipy.optimize import brute, minimize
 
 # ------------------------------------------
 # Heston Model with Fourier Transform
@@ -89,7 +90,7 @@ class HestonFourier:
             denominator = u**2 + 0.25
             return np.real(numerator / denominator)
 
-        integral, _ = quad(heston_integrand, 0, 100, limit=500, epsabs=1e-5)
+        integral, _ = quad(heston_integrand, 0, 150, limit=1000, epsabs=1e-4, epsrel=1e-4)
 
         call_value = max(
             0,
@@ -187,3 +188,57 @@ class HestonCalibrator:
         )
         return result
 
+
+    def calibrate_auto(self):
+        bounds = [(0.1, 15), (0.005, 1), (0.01, 1), (-0.999, 0.999), (0.005, 1)]
+        initial_guess = [2.5, 0.05, 0.2, -0.5, 0.03]
+
+        result = minimize(
+            self.error_function, initial_guess, method='L-BFGS-B',
+            bounds=bounds, options={'maxiter': 1000, 'disp': True}
+        )
+        return result.x
+
+    def plot(self, calibrated_params):
+        kappa, theta, sigma, rho, v0 = calibrated_params
+        model_prices = []
+
+        for _, opt in self.options.iterrows():
+            model = HestonFourier(
+                S0=self.S0,
+                K=opt["Strike"],
+                T=opt["T"],
+                r=opt["r"],
+                v0=v0,
+                theta=theta,
+                kappa=kappa,
+                sigma=sigma,
+                rho=rho,
+                option_type="call",
+                method="lewis"
+            )
+            price = model.price()
+            if opt["Type"] == "P":
+                price = price - self.S0 + opt["Strike"] * np.exp(-opt["r"] * opt["T"])
+            model_prices.append(price)
+
+        self.options["ModelPrice"] = model_prices
+        self.options.set_index("Strike", inplace=True)
+
+        import matplotlib.pyplot as plt
+        plt.figure(figsize=(10, 6))
+        calls = self.options[self.options["Type"] == "C"]
+        puts = self.options[self.options["Type"] == "P"]
+
+        plt.plot(calls.index, calls["Price"], 'bo', label="Market Call Price")
+        plt.plot(calls.index, calls["ModelPrice"], 'b--', label="Model Call Price")
+
+        plt.plot(puts.index, puts["Price"], 'ro', label="Market Put Price")
+        plt.plot(puts.index, puts["ModelPrice"], 'r--', label="Model Put Price")
+
+        plt.xlabel("Strike")
+        plt.ylabel("Option Price")
+        plt.title("Heston Model vs Market Prices")
+        plt.legend()
+        plt.grid()
+        plt.show()
