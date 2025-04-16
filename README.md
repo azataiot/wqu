@@ -4,6 +4,7 @@ Custom Python scripts for the WQU related stuff.
 
 ## Installation
 
+To install the package, you can use pip (within a virtual environment) or uv.
 ```bash
 pip install wqu
 ``` 
@@ -11,6 +12,10 @@ if using UV (recommended) use the following command:
 ```bash
 uv add wqu
 ```
+
+## Documentation
+
+The documentation with detailed examples is available at [WQU Documentation](https://azgh.cc/wqu/).
 
 ## Usage
 
@@ -26,15 +31,6 @@ Current available modules:
 - graph: A package for graphing functions.
 - stream: A package for streaming real-time financial data. 
 
-For the pricing:
-```
-pricing
-├── binomial.py
-├── greeks.py
-├── hedging.py
-├── options.py
-└── trinomial.py
-```
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
