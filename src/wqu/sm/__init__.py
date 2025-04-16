@@ -3,6 +3,7 @@
 
 from .black_scholes import BlackScholesFourier
 from .heston import HestonFourier, HestonCalibrator
+from .merton import MertonFourier, MertonCalibrator
 
 
 
