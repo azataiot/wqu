@@ -1,8 +1,16 @@
 # src/wqu/dp/black_scholes.py
+# Author: Azat
+# Date: 2025-04-16
+
 import numpy as np
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 
+# ------------------------------------------
+# Analytical (closed-form) solution to Black-Scholes Model.
+# This is like the original formula derived in 1973 by Fischer Black and Myron Scholes.
+# This is not a numerical approximation - it is the exact solution.
+# ------------------------------------------
 class BlackScholes:
     def __init__(self, S0:float, K:float, T:float, r:float, sigma:float, option_type:str = "call"):
         """
