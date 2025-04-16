@@ -4,6 +4,7 @@ import numpy as np
 from scipy.integrate import quad
 from scipy.optimize import brute, fmin
 from scipy.optimize import brute, minimize
+from numpy.fft import fft
 
 # ------------------------------------------
 # Heston Model with Fourier Transform
@@ -46,8 +47,8 @@ class HestonFourier:
 
         if self.option_type not in ["call", "put"]:
             raise ValueError("Only 'call' and 'put' options are supported.")
-        if self.method != "lewis":
-            raise NotImplementedError("Only Lewis (2001) method is currently implemented.")
+        if self.method not in ["lewis", "carr-madan"]:
+            raise ValueError("Method must be 'lewis' or 'carr-madan'.")
 
 
     def characteristic_function(self, u):
@@ -99,25 +100,58 @@ class HestonFourier:
 
         return call_value
 
+    def _price_carr_madan(self):
+        k = np.log(self.K / self.S0)
+        N = 4096
+        eps = 1 / 150
+        eta = 2 * np.pi / (N * eps)
+        b = 0.5 * N * eps - k
+        u = np.arange(1, N + 1)
+        vo = eta * (u - 1)
+
+        alpha = 1.5  # damping factor
+        v = vo - (alpha + 1) * 1j
+
+        cf_vals = self.characteristic_function(v)
+        psi = np.exp(-self.r * self.T) * cf_vals / (alpha**2 + alpha - vo**2 + 1j * (2 * alpha + 1) * vo)
+
+        delta = np.zeros(N)
+        delta[0] = 1
+        j = np.arange(1, N + 1)
+        SimpsonW = (3 + (-1)**j - delta) / 3
+
+        integrand = np.exp(1j * b * vo) * psi * eta * SimpsonW
+        payoff = np.real(fft(integrand))
+        CallValueM = np.exp(-alpha * k) / np.pi * payoff
+        idx = int((k + b) / eps)
+        call_price = self.S0 * CallValueM[idx]
+
+        return call_price if self.option_type == "call" else call_price - self.S0 + self.K * np.exp(-self.r * self.T)
+
+
     def price(self):
-        """
-        Price a European call or put using the Lewis (2001) Fourier method.
-        """
-        call_price = self._price_lewis()
+        if self.method == "lewis":
+            call_price = self._price_lewis()
+        elif self.method == "carr-madan":
+            call_price = self._price_carr_madan()
+        else:
+            raise ValueError("Unsupported pricing method")
 
         if self.option_type == "call":
             return call_price
         else:
-            return call_price - self.S0 + self.K * np.exp(-self.r * self.T)  # Put-call parity
+            # Put-call parity
+            return call_price - self.S0 + self.K * np.exp(-self.r * self.T)
 
 
 class HestonCalibrator:
-    def __init__(self, S0, options_df, ranges=None):
+    def __init__(self, S0, options_df, ranges=None, method="lewis"):
         self.S0 = S0
         self.options = options_df
         self.min_mse = float("inf")
         self.counter = 0
         self.ranges = ranges
+        self.method = method
 
     def error_function(self, params):
         kappa, theta, sigma, rho, v0 = params
@@ -141,7 +175,7 @@ class HestonCalibrator:
                 kappa=kappa,
                 sigma=sigma,
                 rho=rho,
-                method="lewis",
+                method=self.method,
                 option_type="call"  # Always price as call first
             )
             call_price = model.price()
