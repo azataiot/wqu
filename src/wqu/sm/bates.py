@@ -1,8 +1,10 @@
 # src/wqu/sm/bates.py
 
 import numpy as np
-from scipy.integrate import quad
 from numpy.fft import fft
+import matplotlib.pyplot as plt
+from scipy.optimize import brute, fmin
+from scipy.integrate import quad
 
 # ------------------------------------------
 # Bates Model with Fourier Transform
@@ -115,3 +117,126 @@ class BatesFourier:
             return self._price_lewis()
         elif self.method == "carr-madan":
             return self._price_carr_madan()
+
+
+# BatesCalibrator class
+class BatesCalibrator:
+    def __init__(self, S0, options_df):
+        self.S0 = S0
+        self.options = options_df.copy()
+        self.i = 0
+        self.min_rmse = np.inf
+        self.best_params = None
+
+    def _model_call_price(self, strike, T, r, sigma, lam, mu, delta, kappa, theta, v0, rho):
+        """
+        Computes model price using Lewis (2001) formulation for Bates (1996).
+        """
+        def integrand(u):
+            # Bates (1996) characteristic function under Lewis integral
+            c1 = kappa * theta
+            d = np.sqrt((rho * sigma * 1j * u - kappa) ** 2 + sigma ** 2 * (1j * u + u ** 2))
+            g = (kappa - rho * sigma * 1j * u - d) / (kappa - rho * sigma * 1j * u + d)
+
+            drift = r - lam * (np.exp(mu + 0.5 * delta**2) - 1)
+            phi = np.exp(
+                1j * u * drift * T
+                + (c1 / sigma ** 2) * ((kappa - rho * sigma * 1j * u - d) * T
+                                       - 2 * np.log((1 - g * np.exp(-d * T)) / (1 - g)))
+                + (v0 / sigma ** 2) * (kappa - rho * sigma * 1j * u - d)
+                * (1 - np.exp(-d * T)) / (1 - g * np.exp(-d * T))
+                + lam * T * (np.exp(1j * u * mu - 0.5 * delta ** 2 * u ** 2) - 1)
+            )
+
+            numerator = np.exp(1j * u * np.log(self.S0 / strike)) * phi
+            return np.real(numerator / (u ** 2 + 0.25))
+
+        integral, _ = quad(integrand, 0, 100)
+        return max(0, self.S0 - np.exp(-r * T) * np.sqrt(self.S0 * strike) / np.pi * integral)
+
+    def error_function(self, p):
+        sigma, lam, mu, delta, kappa, theta, v0, rho = p
+
+        if sigma < 0 or lam < 0 or delta < 0 or v0 < 0 or theta < 0 or not -1 <= rho <= 1:
+            return 1e3
+        if 2 * kappa * theta < sigma ** 2:
+            return 1e3
+
+        errors = []
+        for _, opt in self.options.iterrows():
+            model_price = self._model_call_price(
+                strike=opt["Strike"], T=opt["T"], r=opt["r"],
+                sigma=sigma, lam=lam, mu=mu, delta=delta,
+                kappa=kappa, theta=theta, v0=v0, rho=rho
+            )
+            errors.append((model_price - opt["Call"]) ** 2)
+
+        rmse = np.sqrt(np.mean(errors))
+        if rmse < self.min_rmse:
+            self.min_rmse = rmse
+            self.best_params = p
+
+        if self.i % 25 == 0:
+            print(f"{self.i:4d} | RMSE: {rmse:8.4f} | Best: {self.min_rmse:8.4f} | Params: {np.round(p, 4)}")
+        self.i += 1
+        return rmse
+
+    def calibrate(self):
+        """
+        Perform brute-force + local search calibration for Bates model
+        """
+        self.i = 0
+        self.min_rmse = np.inf
+
+        p0 = brute(
+            self.error_function,
+            ranges=(
+                (0.10, 0.30, 0.05),   # sigma
+                (0.1, 0.5, 0.1),      # lambda
+                (-0.4, 0.0, 0.1),     # mu
+                (0.05, 0.2, 0.05),    # delta
+                (1.0, 3.0, 0.5),      # kappa
+                (0.01, 0.05, 0.01),   # theta
+                (0.01, 0.05, 0.01),   # v0
+                (-0.9, 0.1, 0.2),     # rho
+            ),
+            finish=None
+        )
+
+        result = fmin(self.error_function, p0, xtol=1e-5, ftol=1e-5, maxiter=500, maxfun=800)
+        return result
+
+    def plot(self, calibrated_params):
+        """
+        Plot market vs model prices using calibrated parameters
+        """
+        sigma, lam, mu, delta, kappa, theta, v0, rho = calibrated_params
+
+        # Compute model prices using internal method
+        self.options["Model"] = self.options.apply(
+            lambda row: self._model_call_price(
+                strike=row["Strike"], T=row["T"], r=row["r"],
+                sigma=sigma, lam=lam, mu=mu, delta=delta,
+                kappa=kappa, theta=theta, v0=v0, rho=rho
+            ),
+            axis=1
+        )
+
+        # Plot grouped by maturity
+        maturities = sorted(self.options["Maturity"].unique())
+        n = len(maturities)
+
+        fig, axes = plt.subplots(1, n, figsize=(6 * n, 5), sharey=True)
+
+        if n == 1:
+            axes = [axes]
+
+        for ax, mat in zip(axes, maturities):
+            subset = self.options[self.options["Maturity"] == mat].set_index("Strike")
+            subset[["Call", "Model"]].plot(ax=ax, style=["b-", "ro"], title=f"Maturity: {mat.date()}")
+            ax.set_ylabel("Option Price")
+            ax.grid(True)
+
+        plt.suptitle("Market vs Bates Model Prices", fontsize=14)
+        plt.tight_layout()
+        plt.show()
