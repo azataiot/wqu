@@ -97,6 +97,35 @@ If stock returns aren’t normal:
 - Models like Black-Scholes may **underestimate** extreme events (like crashes)
 - We may need **more advanced models** (e.g., jump-diffusion, GARCH, heavy-tailed distributions)
 
+## Correlated Returns
+
+In many real-world scenarios, we deal with multiple stocks, not just one. For example:
+
+- Basket options depends on several assets 
+- Portfolio risk (VaR) requires simulating a group of stocks 
+- Stocks in the same industry or index are not independent 
+
+So we want to simulate their prices, but also respect their correlations. 
+
+### GBM for one single stock 
+
+We simulate prices using: $dS_t = \mu S_t dt + \sigma S_t dW_t$ , Or in discrete form: $S_{t+1} = S_t \cdot \exp\left((\mu - \frac{1}{2}\sigma^2)\Delta t + \sigma \sqrt{\Delta t} \cdot \varepsilon_t \right)$ where $\varepsilon_t \sim N(0,1)$. If we simulate two stocks this way using independent $\varepsilon$, they’ll be **uncorrelated**. But real stock returns **are correlated** (e.g., Apple and Microsoft move similarly).
+
+### Cholesky Decomposition
+
+To simulate correlated random shocks $\varepsilon_1, \varepsilon_2$, we can use:  **Cholesky Decomposition**
+
+1. Let $\Sigma$ be your **correlation matrix** (e.g., from historical returns)
+
+2. Compute the **Cholesky factor**: $L \text{ such that } \Sigma = L L^\top$ 
+3. Generate independent $z \sim \mathcal{N}(0, I)$ 
+4. Create correlated values: $\varepsilon = L z$ 
+
+This guarantees that the resulting $\varepsilon$ values have the **desired correlation**.
+
+We use Cholesky decomposition to simulate multiple stocks whose random price changes are correlated.
+Instead of sampling independent normal variables, we sample correlated ones using: $\varepsilon = Lz, \quad \text{where } LL^\top = \Sigma$ 
+
 
 
 ## Coding
@@ -206,3 +235,79 @@ apple.compare_with_normal()
 ![img](./assets/AA87CA9F-D9DF-43B2-A3D2-28BDE4C826AF.png)
 
 ![img](./assets/D2FC779B-8EC7-4870-8767-8295CBD03F82.png)
+
+```python
+multi = Returns(tickers=["AAPL", "MSFT", "GOOG"], start="2022-01-01")
+multi.plot_returns()
+pprint(multi.summary())
+```
+
+![multi-returns](./assets/multi-returns.png)
+
+```json
+{'AAPL': {'annualized_return': 0.03743128332933385,
+          'average_daily_return': 0.00014853683860846764,
+          'end_date': '2025-04-15',
+          'final_price': 202.13999938964844,
+          'jarque_bera_p': 1.5058893297318933e-307,
+          'jarque_bera_stat': 1412.9684798174567,
+          'kurtosis': 6.388739786712888,
+          'skewness': 0.3116211853517522,
+          'start_date': '2022-01-03',
+          'total_return': 0.1300318500079385,
+          'volatility_annual': 0.2938530289858372,
+          'volatility_daily': 0.018511000873799522},
+ 'GOOG': {'annualized_return': 0.028895018225221582,
+          'average_daily_return': 0.00011466277073500627,
+          'end_date': '2025-04-15',
+          'final_price': 158.67999267578125,
+          'jarque_bera_p': 6.480725439193935e-62,
+          'jarque_bera_stat': 281.7828866220795,
+          'kurtosis': 2.857321584240662,
+          'skewness': -0.11505899180745548,
+          'start_date': '2022-01-03',
+          'total_return': 0.0989634972040998,
+          'volatility_annual': 0.33268847483008585,
+          'volatility_daily': 0.020957404010899492},
+ 'MSFT': {'annualized_return': 0.05185782809416014,
+          'average_daily_return': 0.0002057850321196831,
+          'end_date': '2025-04-15',
+          'final_price': 385.7300109863281,
+          'jarque_bera_p': 1.0016216603866884e-53,
+          'jarque_bera_stat': 244.07077916353825,
+          'kurtosis': 2.663900517276484,
+          'skewness': 0.07267980584196587,
+          'start_date': '2022-01-03',
+          'total_return': 0.18454777992431826,
+          'volatility_annual': 0.27965063119298217,
+          'volatility_daily': 0.01761633390759221}}
+```
+
+```python
+# For multiple tickers
+multi = Returns(tickers=["AAPL", "MSFT", "GOOG"], start="2022-01-01")
+
+# Heatmap
+multi.plot_correlation_heatmap()
+
+# Simulate correlated returns (like a Monte Carlo engine)
+simulated = multi.simulate_correlated_returns(n_days=252)
+print(simulated.head())
+
+# plot one simulated ticker
+simulated["AAPL"].cumsum().plot(title="Simulated AAPL Path", figsize=(10, 4))
+```
+
+![img](./assets/104E1546-7BE3-4A88-8BA8-3D262217536D.png)
+
+```
+                AAPL      MSFT      GOOG
+2025-04-16  0.010525  0.003827  0.012896
+2025-04-17  0.032033  0.014188  0.014764
+2025-04-18  0.033211  0.029396  0.018340
+2025-04-21  0.011485 -0.000376 -0.001103
+2025-04-22  0.005186 -0.024903 -0.027260
+```
+
+![img](./assets/68A1B7F4-117C-43E1-9F5B-8102E557C732.png)
+
