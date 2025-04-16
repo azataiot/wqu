@@ -5,6 +5,7 @@ from numpy.fft import fft
 import matplotlib.pyplot as plt
 from scipy.optimize import brute, fmin
 from scipy.integrate import quad
+from scipy.optimize import minimize
 
 # ------------------------------------------
 # Bates Model with Fourier Transform
@@ -120,13 +121,14 @@ class BatesFourier:
 
 
 # BatesCalibrator class
-class BatesCalibrator:
-    def __init__(self, S0, options_df):
+class BatesCalibratorLegacy:
+    def __init__(self, S0, options_df, method="lewis"):
         self.S0 = S0
         self.options = options_df.copy()
         self.i = 0
         self.min_rmse = np.inf
         self.best_params = None
+        self.method = method
 
     def _model_call_price(self, strike, T, r, sigma, lam, mu, delta, kappa, theta, v0, rho):
         """
@@ -169,7 +171,9 @@ class BatesCalibrator:
                 sigma=sigma, lam=lam, mu=mu, delta=delta,
                 kappa=kappa, theta=theta, v0=v0, rho=rho
             )
-            errors.append((model_price - opt["Call"]) ** 2)
+            if opt["Type"] == "P":
+                model_price = model_price - self.S0 + opt["Strike"] * np.exp(-opt["r"] * opt["T"])
+            errors.append((model_price - opt["Price"]) ** 2)
 
         rmse = np.sqrt(np.mean(errors))
         if rmse < self.min_rmse:
@@ -206,7 +210,30 @@ class BatesCalibrator:
         result = fmin(self.error_function, p0, xtol=1e-5, ftol=1e-5, maxiter=500, maxfun=800)
         return result
 
-    def plot(self, calibrated_params):
+    def calibrate_auto(self):
+        bounds = [
+            (0.01, 1.0),     # sigma
+            (0.01, 1.0),     # lambda
+            (-1.0, 0.5),     # mu
+            (0.01, 1.0),     # delta
+            (0.5, 10.0),     # kappa
+            (0.005, 0.5),    # theta
+            (0.005, 0.5),    # v0
+            (-0.999, 0.999)  # rho
+        ]
+        initial_guess = np.array([0.2, 0.2, -0.2, 0.1, 2.0, 0.02, 0.02, -0.3])
+
+        result = minimize(
+            self.error_function,
+            initial_guess,
+            method='L-BFGS-B',
+            bounds=bounds,
+            options={'maxiter': 1000, 'disp': True}
+        )
+        return result.x
+
+
+    def plot_legacy(self, calibrated_params):
         """
         Plot market vs model prices using calibrated parameters
         """
@@ -238,5 +265,185 @@ class BatesCalibrator:
             ax.grid(True)
 
         plt.suptitle("Market vs Bates Model Prices", fontsize=14)
+        plt.tight_layout()
+        plt.show()
+
+    def plot(self, calibrated_params):
+        sigma, lam, mu, delta, kappa, theta, v0, rho = calibrated_params
+        model_prices = []
+
+        for _, opt in self.options.iterrows():
+            model_price = self._model_call_price(
+                strike=opt["Strike"], T=opt["T"], r=opt["r"],
+                sigma=sigma, lam=lam, mu=mu, delta=delta,
+                kappa=kappa, theta=theta, v0=v0, rho=rho
+            )
+            if opt["Type"] == "P":
+                model_price = model_price - self.S0 + opt["Strike"] * np.exp(-opt["r"] * opt["T"])
+            model_prices.append(model_price)
+
+        self.options["ModelPrice"] = model_prices
+        df = self.options.copy()
+        df.set_index("Strike", inplace=True)
+
+        import matplotlib.pyplot as plt
+        plt.figure(figsize=(10, 6))
+        calls = df[df["Type"] == "C"]
+        puts = df[df["Type"] == "P"]
+
+        plt.plot(calls.index, calls["Price"], 'bo', label="Market Call Price")
+        plt.plot(calls.index, calls["ModelPrice"], 'b--', label="Model Call Price")
+
+        plt.plot(puts.index, puts["Price"], 'ro', label="Market Put Price")
+        plt.plot(puts.index, puts["ModelPrice"], 'r--', label="Model Put Price")
+
+        plt.xlabel("Strike")
+        plt.ylabel("Option Price")
+        plt.title("Bates Model vs Market Prices (Lewis)")
+        plt.legend()
+        plt.grid()
+        plt.tight_layout()
+        plt.show()
+
+
+
+class BatesCalibrator:
+    def __init__(self, S0, options_df, method="lewis"):
+        self.S0 = S0
+        self.options = options_df.copy()
+        self.method = method.lower()
+        self.i = 0
+        self.min_rmse = np.inf
+        self.best_params = None
+
+    def _model_call_price(self, strike, T, r, sigma, lam, mu, delta, kappa, theta, v0, rho):
+        model = BatesFourier(
+            S0=self.S0,
+            K=strike,
+            T=T,
+            r=r,
+            sigma=sigma,
+            kappa=kappa,
+            theta=theta,
+            v0=v0,
+            rho=rho,
+            lam=lam,
+            mu=mu,
+            delta=delta,
+            method=self.method,
+            option_type="call"
+        )
+        return model.price()
+
+    def error_function(self, p):
+        sigma, lam, mu, delta, kappa, theta, v0, rho = p
+
+        # Constraints
+        if sigma < 0 or lam < 0 or delta < 0 or v0 < 0 or theta < 0 or not -1 <= rho <= 1:
+            return 1e3
+        if 2 * kappa * theta < sigma**2:
+            return 1e3
+
+        errors = []
+        for _, opt in self.options.iterrows():
+            model_price = self._model_call_price(
+                strike=opt["Strike"], T=opt["T"], r=opt["r"],
+                sigma=sigma, lam=lam, mu=mu, delta=delta,
+                kappa=kappa, theta=theta, v0=v0, rho=rho
+            )
+
+            # Adjust put prices via put-call parity
+            if opt["Type"] == "P":
+                model_price = model_price - self.S0 + opt["Strike"] * np.exp(-opt["r"] * opt["T"])
+
+            errors.append((model_price - opt["Price"])**2)
+
+        rmse = np.sqrt(np.mean(errors))
+        if rmse < self.min_rmse:
+            self.min_rmse = rmse
+            self.best_params = p
+
+        if self.i % 25 == 0:
+            print(f"{self.i:4d} | RMSE: {rmse:8.4f} | Best: {self.min_rmse:8.4f} | Params: {np.round(p, 4)}")
+        self.i += 1
+        return rmse
+
+    def calibrate(self):
+        self.i = 0
+        self.min_rmse = np.inf
+
+        p0 = brute(
+            self.error_function,
+            ranges=(
+                (0.10, 0.30, 0.05),   # sigma
+                (0.1, 0.5, 0.1),      # lambda
+                (-0.4, 0.0, 0.1),     # mu
+                (0.05, 0.2, 0.05),    # delta
+                (1.0, 3.0, 0.5),      # kappa
+                (0.01, 0.05, 0.01),   # theta
+                (0.01, 0.05, 0.01),   # v0
+                (-0.9, 0.1, 0.2),     # rho
+            ),
+            finish=None
+        )
+
+        result = fmin(self.error_function, p0, xtol=1e-5, ftol=1e-5, maxiter=500, maxfun=800)
+        return result
+
+    def calibrate_auto(self):
+        bounds = [
+            (0.01, 1.0),     # sigma
+            (0.01, 1.0),     # lambda
+            (-1.0, 0.5),     # mu
+            (0.01, 1.0),     # delta
+            (0.5, 10.0),     # kappa
+            (0.005, 0.5),    # theta
+            (0.005, 0.5),    # v0
+            (-0.999, 0.999)  # rho
+        ]
+        initial_guess = np.array([0.2, 0.2, -0.2, 0.1, 2.0, 0.02, 0.02, -0.3])
+
+        result = minimize(
+            self.error_function,
+            initial_guess,
+            method='L-BFGS-B',
+            bounds=bounds,
+            options={'maxiter': 1000, 'disp': True}
+        )
+        return result.x
+
+    def plot(self, calibrated_params):
+        sigma, lam, mu, delta, kappa, theta, v0, rho = calibrated_params
+        model_prices = []
+
+        for _, opt in self.options.iterrows():
+            model_price = self._model_call_price(
+                strike=opt["Strike"], T=opt["T"], r=opt["r"],
+                sigma=sigma, lam=lam, mu=mu, delta=delta,
+                kappa=kappa, theta=theta, v0=v0, rho=rho
+            )
+            if opt["Type"] == "P":
+                model_price = model_price - self.S0 + opt["Strike"] * np.exp(-opt["r"] * opt["T"])
+            model_prices.append(model_price)
+
+        self.options["ModelPrice"] = model_prices
+        df = self.options.copy()
+        df.set_index("Strike", inplace=True)
+
+        plt.figure(figsize=(10, 6))
+        calls = df[df["Type"] == "C"]
+        puts = df[df["Type"] == "P"]
+
+        plt.plot(calls.index, calls["Price"], 'bo', label="Market Call Price")
+        plt.plot(calls.index, calls["ModelPrice"], 'b--', label="Model Call Price")
+
+        plt.plot(puts.index, puts["Price"], 'ro', label="Market Put Price")
+        plt.plot(puts.index, puts["ModelPrice"], 'r--', label="Model Put Price")
+
+        plt.xlabel("Strike")
+        plt.ylabel("Option Price")
+        plt.title(f"Bates Model vs Market Prices ({self.method.capitalize()})")
+        plt.legend()
+        plt.grid()
         plt.tight_layout()
         plt.show()

@@ -257,12 +257,13 @@ class HestonCalibrator:
             model_prices.append(price)
 
         self.options["ModelPrice"] = model_prices
-        self.options.set_index("Strike", inplace=True)
+        df = self.options.copy()
+        df.set_index("Strike", inplace=True)
 
         import matplotlib.pyplot as plt
         plt.figure(figsize=(10, 6))
-        calls = self.options[self.options["Type"] == "C"]
-        puts = self.options[self.options["Type"] == "P"]
+        calls = df[df["Type"] == "C"]
+        puts = df[df["Type"] == "P"]
 
         plt.plot(calls.index, calls["Price"], 'bo', label="Market Call Price")
         plt.plot(calls.index, calls["ModelPrice"], 'b--', label="Model Call Price")
@@ -272,7 +273,7 @@ class HestonCalibrator:
 
         plt.xlabel("Strike")
         plt.ylabel("Option Price")
-        plt.title("Heston Model vs Market Prices")
+        plt.title(f"Heston Model vs Market Prices {self.method.capitalize()}")
         plt.legend()
         plt.grid()
         plt.show()
