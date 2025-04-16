@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from .black_scholes import BlackScholesFourier
-from .heston import HestonFourier, HestonCalibrator
+from .heston import HestonFourier, HestonCalibrator, HestonCalibratorParity
 from .merton import MertonFourier, MertonCalibrator
 from .bates import BatesFourier, BatesCalibrator
 
