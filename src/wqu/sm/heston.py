@@ -176,6 +176,6 @@ class HestonCalibrator:
             finish=None
         )
         print(">>> Refining with local search...")
-        result = fmin(self.error_function, initial, xtol=1e-6, ftol=1e-6, maxiter=750, maxfun=900)
+        result = fmin(self.error_function, initial, xtol=1e-6, ftol=1e-6, maxiter=1000, maxfun=1500)
         return result
 
