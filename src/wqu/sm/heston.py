@@ -249,7 +249,7 @@ class HestonCalibrator:
                 sigma=sigma,
                 rho=rho,
                 option_type="call",
-                method="lewis"
+                method=self.method
             )
             price = model.price()
             if opt["Type"] == "P":
