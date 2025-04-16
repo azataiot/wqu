@@ -4,7 +4,12 @@ import numpy as np
 from scipy.integrate import quad
 from numpy.fft import fft
 
-
+# ------------------------------------------
+# Bates Model with Fourier Transform
+# This class implements the Bates model for option pricing using the Fourier transform method.
+# It combines the Heston model with Merton's jump-diffusion model.
+# Approaches: Lewis (2001) and Carr-Madan (1999).
+# ------------------------------------------
 class BatesFourier:
     def __init__(
             self,
