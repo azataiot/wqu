@@ -10,6 +10,10 @@ Full docs are available at [wqu Documentation](https://azgh.cc/wqu).
 
 ---
 
+## Table of Contents 
+
+### [Derivative Pricing](Derivative%20Pricing/01-index/)
+
 ## Contributing
 
 We welcome all kinds of contributions—whether it’s code, documentation, or examples. To get started, please make sure you have a solid background in one or more of the following areas:

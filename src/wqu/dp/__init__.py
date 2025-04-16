@@ -5,5 +5,6 @@ from .binomial import BinomialTree
 from .gbm import GBM
 from .black_scholes import  BlackScholes
 from .vasicek import Vasicek
+from .returns import Returns
 
-__all__ = ["put_from_call", "BinomialTree", "GBM","BlackScholes","Vasicek"]
+__all__ = ["put_from_call", "BinomialTree", "GBM","BlackScholes","Vasicek","Returns"]
