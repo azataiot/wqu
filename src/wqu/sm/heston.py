@@ -160,10 +160,11 @@ class HestonCalibrator:
         self.counter += 1
         return mse
 
-    def calibrate(self, ranges=None):
+    def calibrate(self):
         print(">>> Starting brute-force search...")
-        if self.ranges is None:
-            self.ranges=(
+        ranges = self.ranges
+        if ranges is None:
+            ranges = (
                 (2.5, 10.6, 5),          # kappa
                 (0.01, 0.041, 0.01),     # theta
                 (0.01, 0.5, 0.05),       # sigma
@@ -172,10 +173,17 @@ class HestonCalibrator:
             )
         initial = brute(
             self.error_function,
-            ranges=self.ranges,
+            ranges=ranges,
             finish=None
         )
         print(">>> Refining with local search...")
-        result = fmin(self.error_function, initial, xtol=1e-6, ftol=1e-6, maxiter=1000, maxfun=1500)
+        result = fmin(
+            self.error_function,
+            initial,
+            xtol=1e-6,
+            ftol=1e-6,
+            maxiter=1000,
+            maxfun=1500
+        )
         return result
 
