@@ -129,6 +129,7 @@ class HestonCalibrator:
 
         errors = []
         for _, opt in self.options.iterrows():
+            # dynamically handle call and put types
             model = HestonFourier(
                 S0=self.S0,
                 K=opt["Strike"],
@@ -140,10 +141,17 @@ class HestonCalibrator:
                 sigma=sigma,
                 rho=rho,
                 method="lewis",
-                option_type="call"
+                option_type="call"  # Always price as call first
             )
-            price = model.price()
-            errors.append((price - opt["Call"])**2)
+            call_price = model.price()
+
+            # Adjust via put-call parity if type is Put
+            if opt["Type"] == "P":
+                model_price = call_price - self.S0 + opt["Strike"] * np.exp(-opt["r"] * opt["T"])
+            else:
+                model_price = call_price
+            # Compute squared errors
+            errors.append((model_price - opt["Price"])**2)
 
         mse = np.mean(errors)
         self.min_mse = min(self.min_mse, mse)
@@ -156,75 +164,16 @@ class HestonCalibrator:
         print(">>> Starting brute-force search...")
         initial = brute(
             self.error_function,
-            ranges=((2.5, 10.6, 5), (0.01, 0.041, 0.01), (0.05, 0.251, 0.1), (-0.75, 0.01, 0.25), (0.01, 0.031, 0.01)),
+            ranges=(
+                (2.5, 10.6, 5),          # kappa
+                (0.01, 0.041, 0.01),     # theta
+                (0.05, 0.251, 0.1),      # sigma
+                (-0.75, 0.01, 0.25),     # rho
+                (0.01, 0.031, 0.01)      # v0
+            ),
             finish=None
         )
         print(">>> Refining with local search...")
         result = fmin(self.error_function, initial, xtol=1e-6, ftol=1e-6, maxiter=750, maxfun=900)
         return result
 
-class HestonCalibratorParity:
-    """
-    Calibrates the HestonFourier model to both calls and puts using put–call parity.
-    Expects a DataFrame with columns: Strike, T, r, Type ('C' or 'P'), Price.
-    """
-    def __init__(self, S0, options_df):
-        self.S0 = S0
-        self.options = options_df.copy().reset_index(drop=True)
-        self.min_mse = float("inf")
-        self.iteration = 0
-
-    def error(self, params):
-        kappa, theta, sigma, rho, v0 = params
-        # enforce admissible region
-        if kappa <= 0 or theta <= 0 or sigma <= 0 or not -1 <= rho <= 1:
-            return 1e6
-        if 2 * kappa * theta < sigma**2:
-            return 1e6
-
-        errors = []
-        for _, opt in self.options.iterrows():
-            K, T, r, typ, Pm = (
-                opt["Strike"], opt["T"], opt["r"],
-                opt["Type"], opt["Price"]
-            )
-            # price the call
-            pricer = HestonFourier(
-                S0=self.S0, K=K, T=T, r=r,
-                v0=v0, theta=theta, kappa=kappa,
-                sigma=sigma, rho=rho,
-                method="lewis", option_type="call"
-            )
-            Cmod = pricer.price()
-            if typ == 'C':
-                errors.append((Cmod - Pm)**2)
-            else:  # put via parity
-                Pmod = Cmod - self.S0 + K * np.exp(-r * T)
-                errors.append((Pmod - Pm)**2)
-
-        mse = np.mean(errors)
-        # logging progress
-        if self.iteration % 25 == 0:
-            print(f"{self.iteration:4d} | params={np.round(params,4)} | MSE={mse:.8f} | best={self.min_mse:.8f}")
-        self.iteration += 1
-        self.min_mse = min(self.min_mse, mse)
-        return mse
-
-    def calibrate(self):
-        # 1) Coarse brute‑force
-        print(">>> Starting brute‑force search")
-        init = brute(
-            self.error,
-            ranges=(
-                (0.1, 5.0, 5),    # kappa
-                (0.001, 0.1, 5),  # theta
-                (0.01, 0.5, 5),   # sigma
-                (-0.9, 0.9, 5),   # rho
-                (0.001, 0.1, 5)   # v0
-            ),
-            finish=None
-        )
-        # 2) Local refinement
-        print(">>> Refining via Nelder–Mead")
-        result = fmin(self.error, init, xtol=1e-6, ftol=1e-6, disp=True)
-        return result
