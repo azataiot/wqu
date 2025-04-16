@@ -169,7 +169,7 @@ class HestonCalibrator:
                 (0.01, 0.5, 0.05),       # sigma
                 (-0.75, 0.01, 0.25),     # rho
                 (0.01, 0.031, 0.01)      # v0
-            ),
+            )
         initial = brute(
             self.error_function,
             ranges=self.ranges,
