@@ -54,6 +54,51 @@ To get real stock data (like prices of AAPL or SPY), we use financial data APIs,
 	•	Polygon.io
 	•	Quandl 
 
+## Characteristics of the Returns 
+
+Do real-world stock returns behave like the normal distribution (bell curve) ? Mostly models (like Black-Scholes, GBM, etc.) assume: $r_t \sim \mathcal{N}(\mu, \sigma^2)$ but is that assumption actually valid ?
+
+These are **empirical truths** observed from real market data — patterns that keep showing up: 
+
+- Returns are not normally distributed. 
+  - They have fat tails (more extreme events than a normal distribution would predict)
+  - They are leptokurtic (higher peaks and fatter tails)
+- Negative Skew
+  - Big drops happen more than big gains 
+  - The distribution is often tilted left 
+- Volatility Clustering
+  - High volatility periods tend to follow each other 
+  - This violates the i.i.d. assumption of many models 
+
+## Test for normality 
+
+ **Jarque-Bera Test**
+
+A test that checks whether skewness and kurtosis deviate from those of a normal distribution. 
+
+
+$$
+\text{JB} = \frac{n}{6} \left( S^2 + \frac{(K - 3)^2}{4} \right)
+$$
+
+
+Where:
+
+
+
+- n = number of observations
+- S = skewness
+- K = kurtosis 
+
+ If JB is **large** and p-value is **small**, we **reject** the normality assumption. 
+
+If stock returns aren’t normal:
+
+- Models like Black-Scholes may **underestimate** extreme events (like crashes)
+- We may need **more advanced models** (e.g., jump-diffusion, GARCH, heavy-tailed distributions)
+
+
+
 ## Coding
 
 ```python
@@ -127,3 +172,37 @@ pprint(apple.summary(method="log"))
  'volatility_daily': 0.018511005183202773}
 ```
 
+```python
+from pprint import pprint
+
+apple = Returns("AAPL", start="2022-01-01")
+
+# Full stats
+pprint(apple.summary(method="log"))
+
+# Histogram
+apple.plot_histogram()
+
+# Real vs Normal
+apple.compare_with_normal()
+```
+
+```
+{'annualized_return': 0.037431283329334854,
+ 'average_daily_return': 0.00014853683860847165,
+ 'end_date': '2025-04-15',
+ 'final_price': 202.13999938964844,
+ 'jarque_bera_p': 1.5079435967188569e-307,
+ 'jarque_bera_stat': 1412.9657533659843,
+ 'kurtosis': 6.388733674088982,
+ 'skewness': 0.3116206222444215,
+ 'start_date': '2022-01-03',
+ 'ticker': 'AAPL',
+ 'total_return': 0.13003185000794226,
+ 'volatility_annual': 0.2938530771694982,
+ 'volatility_daily': 0.01851100390908486}
+```
+
+![img](./assets/AA87CA9F-D9DF-43B2-A3D2-28BDE4C826AF.png)
+
+![img](./assets/D2FC779B-8EC7-4870-8767-8295CBD03F82.png)

@@ -4,6 +4,8 @@ import yfinance as yf
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from scipy.stats import skew, kurtosis, jarque_bera, norm
+
 
 class Returns:
     def __init__(self, ticker: str, start: str = "2020-01-01", end: str = None, interval: str = "1d"):
@@ -118,12 +120,54 @@ class Returns:
         plt.tight_layout()
         plt.show()
 
+    def plot_histogram(self, method: str = "log", bins: int = 50):
+        """
+        Plot histogram of returns with normal distribution overlay.
+        """
+        returns = self.compute_returns(method)
+        mu, sigma = returns.mean(), returns.std()
+
+        plt.figure(figsize=(10, 5))
+        plt.hist(returns, bins=bins, density=True, alpha=0.6, label="Empirical")
+
+        x = np.linspace(returns.min(), returns.max(), 100)
+        plt.plot(x, norm.pdf(x, mu, sigma), 'r--', label="Normal PDF")
+
+        plt.title(f"{self.ticker} Return Distribution ({method})")
+        plt.xlabel("Return")
+        plt.ylabel("Density")
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+
+    def compare_with_normal(self, method: str = "log", bins: int = 50):
+        """
+        Compare actual returns with a simulated normal distribution.
+        """
+        returns = self.compute_returns(method)
+        mu, sigma = returns.mean(), returns.std()
+        normal_sim = np.random.normal(mu, sigma, size=len(returns))
+
+        plt.figure(figsize=(10, 5))
+        plt.hist(returns, bins=bins, alpha=0.5, label="Actual Returns", density=True)
+        plt.hist(normal_sim, bins=bins, alpha=0.5, label="Simulated Normal", density=True)
+        plt.title(f"{self.ticker} Actual vs Normal Returns ({method})")
+        plt.xlabel("Return")
+        plt.ylabel("Density")
+        plt.legend()
+        plt.grid(True)
+        plt.tight_layout()
+        plt.show()
+
     def summary(self, method: str = "log") -> dict:
         """
-        Return a summary dictionary with clean scalar values.
+        Return a summary dictionary with performance + statistical properties.
         """
         price = self.data["Price"]
         returns = self.compute_returns(method)
+
+        jb_stat, jb_p = jarque_bera(returns)
 
         return {
             "ticker": self.ticker,
@@ -135,4 +179,8 @@ class Returns:
             "average_daily_return": returns.mean().item(),
             "volatility_daily": returns.std().item(),
             "volatility_annual": (returns.std() * np.sqrt(252)).item(),
+            "skewness": skew(returns).item(),
+            "kurtosis": kurtosis(returns).item(),  # excess kurtosis
+            "jarque_bera_stat": jb_stat.item(),
+            "jarque_bera_p": jb_p.item(),
         }
