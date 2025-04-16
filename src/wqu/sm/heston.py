@@ -2,7 +2,6 @@
 
 import numpy as np
 from scipy.integrate import quad
-from scipy.optimize import minimize
 from scipy.optimize import brute, fmin
 
 # ------------------------------------------
@@ -90,7 +89,7 @@ class HestonFourier:
             denominator = u**2 + 0.25
             return np.real(numerator / denominator)
 
-        integral, _ = quad(heston_integrand, 0, np.inf, limit=250)
+        integral, _ = quad(heston_integrand, 0, 100, limit=500, epsabs=1e-5)
 
         call_value = max(
             0,
@@ -112,11 +111,12 @@ class HestonFourier:
 
 
 class HestonCalibrator:
-    def __init__(self, S0, options_df):
+    def __init__(self, S0, options_df, ranges=None):
         self.S0 = S0
         self.options = options_df
         self.min_mse = float("inf")
         self.counter = 0
+        self.ranges = ranges
 
     def error_function(self, params):
         kappa, theta, sigma, rho, v0 = params
@@ -160,17 +160,19 @@ class HestonCalibrator:
         self.counter += 1
         return mse
 
-    def calibrate(self):
+    def calibrate(self, ranges=None):
         print(">>> Starting brute-force search...")
-        initial = brute(
-            self.error_function,
-            ranges=(
+        if self.ranges is None:
+            self.ranges=(
                 (2.5, 10.6, 5),          # kappa
                 (0.01, 0.041, 0.01),     # theta
                 (0.01, 0.5, 0.05),       # sigma
                 (-0.75, 0.01, 0.25),     # rho
                 (0.01, 0.031, 0.01)      # v0
             ),
+        initial = brute(
+            self.error_function,
+            ranges=self.ranges,
             finish=None
         )
         print(">>> Refining with local search...")
