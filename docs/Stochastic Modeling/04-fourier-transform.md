@@ -1,4 +1,4 @@
-# Fourier-based option pricing
+# Fourier-Based option pricing (BS)
 
 We want to compute this integral from Carr-Madan’s formula:
 
