@@ -1,40 +1,34 @@
 # WQU
 
-Custom Python scripts for the WQU related stuff.
+wqu is an open-source, community-driven project dedicated to fostering collaboration, sharing, and learning.
 
-## Installation
-
-To install the package, you can use pip (within a virtual environment) or uv.
-```bash
-pip install wqu
-``` 
-if using UV (recommended) use the following command:
-```bash
-uv add wqu
-```
+---
 
 ## Documentation
 
-The documentation with detailed examples is available at [WQU Documentation](https://azgh.cc/wqu/).
+Full docs are available at [wqu Documentation](https://azgh.cc/wqu).
 
-## Usage
+---
 
-NOTE: currently package is not stable and interfaces are object to frequent changes. Not recommended for production use.
+## Table of Contents
 
-Current available modules:
-
-
-- pricing: A package for pricing options and other financial instruments.
-- volatility: A package for calculating volatility.
-- data: A package for data manipulation and analysis.
-- utils: A package for utility functions.
-- graph: A package for graphing functions.
-- stream: A package for streaming real-time financial data. 
-
+### [Derivative Pricing](Derivative%20Pricing/01-index/)
 
 ## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-All tests must pass before merging the code.
+
+We welcome all kinds of contributions—whether it’s code, documentation, or examples. To get started, please make sure you have a solid background in one or more of the following areas:
+
+- **Python & Scientific Libraries**  
+  NumPy, pandas, matplotlib, SciPy, scikit‑learn, PyTorch
+- **Documentation Tools**  
+  Markdown, LaTeX
+
+Ready to contribute?
+- Join the conversation on our [GitHub Discussions](https://github.com/azataiot/wqu/discussions).
+- Found a bug or have a feature request? Let us know via our [Issue Tracker](https://github.com/azataiot/wqu/issues).
+
+Thank you for helping make wqu better!
+
 
 ## License
 
