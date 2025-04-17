@@ -534,42 +534,155 @@ If each state is associated with a numerical value (e.g., $s_1 = -1, s_2 = 1$), 
 
 ## Code
 
-The main code is written within the `sm/markov.py`
-
 ```python
-class StateMarkovChain:
-    def __init__(self, states, transition_matrix, initial_state=None):
+from wqu.sm.markov import StateMarkovChain
+
+
+# Define the state
+states = [-1, 1]
+P = [
+    [0.55, 0.45],
+    [0.45, 0.55]
+]
+
+# Create the Markov chain instance with initial state -1
+mc = StateMarkovChain(states=states, transition_matrix=P, initial_state=-1)
+
+# Example 1: Simulate a two-step path
+mc.reset(to_state=-1)
+path_two_steps = mc.simulate(2)
+
+# Example 2: Simulate a three-step path
+mc.reset(to_state=-1)
+path_three_steps = mc.simulate(3)
+
+(path_two_steps, path_three_steps)
 ```
 
-where: 
-
-```python
-self.states = np.array(states)
-self.P = np.array(transition_matrix)
-self.N = len(states)
+```
+([-1, -1, np.int64(1)], [-1, np.int64(1), np.int64(-1), np.int64(-1)])
 ```
 
-- states: a list like [-1, 1] or [0, 1, 2] — these are the **actual values** of the states $s_1, s_2, \dots$ 
-- P: the **transition matrix** $P \in \mathbb{R}^{N \times N}$, where $P_{ij} = \mathbb{P}(s_{t+1} = j \mid s_t = i)$ 
-
 ```python
-assert self.P.shape == (self.N, self.N)
-assert np.allclose(self.P.sum(axis=1), 1)
+mc.plot_trajectory()
 ```
 
-- Ensures the matrix is square and each row sums to 1 (valid probability transition matrix)
+![img](./assets/ECC0B232-766C-42B6-A3EF-3EC2BADEFBD4.png)
 
 ```python
-self.index_map = {state: i for i, state in enumerate(self.states)}
-self.current_state = initial_state if initial_state else np.random.choice(self.states)
+# Simulating the stochastic process defined by: $X_t = X_{t-1} + s_t$ 
+ 
+# Initialize 
+states = [-1, 1]
+P = [
+    [0.55, 0.45],
+    [0.45, 0.55]
+]
+
+mc = StateMarkovChain(states=states, transition_matrix=P, initial_state=-1)
+
+# Simulate the process X_t = X_{t-1} + s_t for 20 steps
+Xt_path, state_path = mc.simulate_X_t_process(steps=20, x0=0)
+
+(Xt_path, state_path)
 ```
 
-- index_map allows converting from state values (e.g., -1, 1) to matrix indices
-- current_state: initialized to a given or random state
+```python
+import matplotlib.pyplot as plt
+
+# Plot the simulated X_t process
+plt.figure(figsize=(10, 5))
+plt.plot(Xt_path, marker='o', label='X_t')
+plt.title("Simulated Process $X_t = X_{t-1} + s_t$")
+plt.xlabel("Time Step")
+plt.ylabel("X_t")
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+plt.show()
+```
+
+![img](./assets/859002D7-2911-4A55-8015-1C3223D0C0F0.png)
 
 
 
+```python
+# Plot the simulated S_t process (states)
+
+plt.figure(figsize=(10, 5))
+plt.plot(state_path, marker='o', label='S_t')
+plt.title("Simulated Process $S_t$")
+plt.xlabel("Time Step")
+plt.ylabel("S_t")
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+plt.show()
+```
+
+![img](./assets/A4898F19-4EA6-4F8A-9EC2-EF8FE9C1E81E.png)
 
 
 
+```python
+# Overlay both X_t and state values s_t on the same plot
+time = list(range(len(Xt_path)))
+
+fig, ax1 = plt.subplots(figsize=(12, 5))
+
+# Plot X_t
+ax1.plot(time, Xt_path, 'o-', color='blue', label='X_t')
+ax1.set_xlabel("Time Step")
+ax1.set_ylabel("$X_t$", color='blue')
+ax1.tick_params(axis='y', labelcolor='blue')
+
+# Plot s_t on secondary axis
+ax2 = ax1.twinx()
+ax2.step(time, state_path, where='mid', color='orange', linestyle='--', label='s_t (state)')
+ax2.set_ylabel("State $s_t$", color='orange')
+ax2.tick_params(axis='y', labelcolor='orange')
+
+# Legends and titles
+fig.suptitle("Process $X_t = X_{t-1} + s_t$ with Overlayed State Values $s_t$", fontsize=14)
+ax1.grid(True)
+fig.tight_layout()
+plt.show()
+```
+
+![img](./assets/15D6625E-09A7-4722-9ED8-8B11AEFF776A.png)
+
+```python
+states = [-1, 1]
+P = [
+    [0.55, 0.45],
+    [0.45, 0.55]
+]
+
+mc = StateMarkovChain(states, P, initial_state=-1)
+X, s_path, Psim = mc.simulate_X_t(steps=50, x0=75)
+
+# ---- Plot results ----
+
+plt.figure(figsize=(14, 5))
+plt.subplot(1, 2, 1)
+plt.plot(X, marker='o')
+plt.title("X_t (Cumulative Process)")
+
+plt.subplot(1, 2, 2)
+plt.plot(s_path, marker='x')
+plt.title("s_t (State Transitions)")
+
+plt.tight_layout()
+plt.show()
+
+print("Empirical Transition Matrix (Psim):\n", Psim)
+```
+
+![xt-st-together](./assets/xt-st-together.png)
+
+```
+Empirical Transition Matrix (Psim):
+ [[12. 14.]
+ [13. 10.]]
+```
 
