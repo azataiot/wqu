@@ -15,8 +15,8 @@ Full docs are available at [wqu Documentation](https://azgh.cc/wqu).
 
 ## Table of Contents
 
-### [Derivative Pricing](Derivative%20Pricing/01-index/)
-### [Stochastic Modeling](Stochastic%20Modeling/01-index/)
+### [Derivative Pricing](https://azgh.cc/wqu/Derivative%20Pricing/01-index/)
+### [Stochastic Modeling](https://azgh.cc/wqu/Stochastic%20Modeling/01-index/)
 
 ## Contributing
 
