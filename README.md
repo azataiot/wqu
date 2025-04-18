@@ -2,6 +2,9 @@
 
 wqu is an open-source, community-driven project dedicated to fostering collaboration, sharing, and learning.
 
+> **⚠️ WARNING: BETA VERSION ⚠️**  
+> The current version of the code and documentation are in beta and might change in future updates.
+
 ---
 
 ## Documentation
@@ -13,6 +16,7 @@ Full docs are available at [wqu Documentation](https://azgh.cc/wqu).
 ## Table of Contents
 
 ### [Derivative Pricing](Derivative%20Pricing/01-index/)
+### [Stochastic Modeling](Stochastic%20Modeling/01-index/)
 
 ## Contributing
 
@@ -38,6 +42,3 @@ Thank you for helping make wqu better!
 ## Note: 
 
 This package is built with my personal interest, and it is not an official package of WQU, using this package is at your own risk.
-
-
-
