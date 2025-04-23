@@ -37,6 +37,9 @@ docs = [
     "mkdocs-material>=9.6.11",
 ]
 
+[tool.flit.sdist]
+exclude = ["docs/", "notebooks/", "playground/", "dist/", "*.ipynb"]
+
 [tool.ruff]
 # Exclude all notebook files
 exclude = ["*.ipynb"]

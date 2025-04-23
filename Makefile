@@ -18,6 +18,11 @@ help:
 	@printf "\n"
 
 
+## Build the package locally with flit (without publishing)
+build:
+	@echo "Building package locally..."
+	@flit build
+
 ## Publish the package to PyPI with flit
 publish:
 	@echo "Publishing to PyPI..."

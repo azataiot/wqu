@@ -48,6 +48,8 @@ which confirms that the matrix is normalized.
 ## Step 3: Create the Markov chain
 
 ```python
+from wqu.sm.credit_rating import CreditRatingMarkovChain
+
 # Use standard credit rating labels
 S = ["AAA", "AA", "A", "BBB", "BB", "B", "CCC/C", "D"]
 # Transition matrix without NR
