@@ -9,3 +9,12 @@ Current Python environment dose not have the `pca` PyPI package, we need to inst
 !pip install pca
 ```
 
+## ModuleNotFoundError: No module named 'pandas_datareader’
+
+same as above, you need to install this package with:
+
+```python
+%%capture pdr
+!pip install pandas_datareader
+```
+
