@@ -18,3 +18,10 @@ same as above, you need to install this package with:
 !pip install pandas_datareader
 ```
 
+## ModuleNotFoundError: No module named 'openpyxl’
+
+```python
+%%capture openpyxl
+!pip install openpyxl
+```
+
