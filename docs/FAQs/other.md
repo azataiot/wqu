@@ -34,3 +34,13 @@ The Colab notebook below has all the instructions and creates the correct CSV fi
 ![CleanShot 2025-06-06 at 14.15.28](./assets/CleanShot 2025-06-06 at 14.15.28.png)
 
 Link to Colab: https://colab.research.google.com/drive/1HMvdd9LCvYjrWP5Pa2b0fn6HaWSsFcq7?usp=sharing 
+
+
+
+## ModuleNotFoundError: No module named 'xgboost’
+
+```python
+%%capture xgboost
+!pip install xgboost
+```
+
